@@ -1,0 +1,250 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Courses</title>
+    <script src="Scripts/jquery-3.3.1.js"></script>
+    <script src="Scripts/angular.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-sanitize.js"></script>
+
+    <link href="Content/bootstrap.css" rel="stylesheet" />
+    <script src="Scripts/bootstrap.js"></script>
+
+
+    <script>
+
+        var app = angular.module('MyApp', [])
+        
+        app.controller('MyController', function ($scope, $http, $window) {
+            let editing = null;
+            let LoadCourseData = () => {
+                $http({
+                    method: "GET",
+                    url: "api/Courses",
+                    dataType: 'json',
+                    headers: { "Content-Type": "application/json" }
+                }).then(function (data, status) {
+                    console.log(data.data)
+                    $scope.Courses = data.data;
+                });
+            }
+            LoadCourseData();
+
+            $scope.AddCourse = function () {
+
+                if(!$scope.name.match("^[a-zA-Z ]*$")) {
+                    return console.error("Invalid Name Format");
+                }
+                if(!$scope.code.match("[a-zA-Z]{2}[0-9]{4}")) {
+                    return console.error("Invalid Code Format");
+                }
+                if( $scope.credit  < 1 || $scope.credit  > 3) {
+                    $scope.Error = 'Invalid Credit Hours'
+                    return console.error("Invalid Credit Hours");
+                }
+                $http({
+                    method: "POST",
+                    url: "api/Courses",
+                    data: "{CourseName: '" + $scope.name + "', CourseCode: '" + $scope.code + "',CourseHours: '" + $scope.credit + "'}",
+                    dataType: 'json',
+                    headers: { "Content-Type": "application/json" }
+                }).then(function (data, status) {
+
+                    console.log("Done")
+
+                    LoadCourseData();
+
+               })
+
+
+
+            };
+
+          $scope.DeleteCourse = function (id) {
+
+
+                $http({
+                    method: "DELETE",
+                    url: "api/Courses/" + id,
+
+                }).then(function (data, status) {
+                    LoadCourseData();
+
+
+                })
+
+
+
+            };
+
+            $scope.StartEditing = function (id)  {
+
+                editing = id;
+                $scope.EditingCourse = $scope.Courses.filter((Course) => { if(Courses.CourseId == id) return Course })
+
+                console.log($scope.EditingCourse[0]) 
+            }
+
+           $scope.EditCourse = function () {
+                console.log("Editing" + editing )
+
+                              if(!$scope.ename.match("^[a-zA-Z ]*$")) {
+                    return console.error("Invalid Name Format");
+                }
+                if(!$scope.ecode.match("[a-zA-Z]{2}[0-9]{4}")) {
+                    return console.error("Invalid Code Format");
+                }
+                if( $scope.ecredit  < 1 || $scope.ecredit  > 3) {
+                    $scope.Error = 'Invalid Credit Hours'
+                    return console.error("Invalid Credit Hours");
+                }
+
+                $http({
+                    method: "PUT",
+                    url: "api/Courses/" + editing,
+                    data: "{CourseName: '" + $scope.name + "', CourseCode: '" + $scope.code + "',CourseHours: '" + $scope.credit + "'}",
+
+                }).then(function (data, status) {
+                    LoadCourseData();
+                    $('#editCourseModal1').modal('hide');
+
+                })
+
+
+
+            };
+
+
+        });
+    </script>
+</head>
+
+<body>
+    <nav class="navbar navbar-inverse">
+        <div class="container-fluid">
+            <div class="navbar-header"> <button type="button" class="collapsed navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-9" aria-expanded="false"> <span class="sr-only">Toggle navigation</span> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span> </button> <a href="students.html" class="navbar-brand">School Management System</a> </div> <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-9"> <ul class="nav navbar-nav"> <li><a href="students.html">Students</a></li>  <li class="active"><a href="courses.html">Courses</a></li> <li><a href="register.html">Course  Registeration </a></li></ul> </div>
+        </div>
+    </nav>
+    <div class="container" ng-app="MyApp" ng-controller="MyController">
+
+        <div>
+            <div class="table-wrapper">
+                <div class="table-title">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <h2>Manage <b>Courses</b></h2>
+                        </div>
+                        <div class="col-sm-6">
+                            <a href="#addCourseModal" class="btn btn-success" data-toggle="modal"> <span>Add New Course</span></a>
+
+                        </div>
+                    </div>
+                </div>
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>
+
+                            </th>
+                            <th>Name</th>
+                            <th>Credit Hours</th>
+                            <th>Code</th>
+                        </tr>
+                    </thead>
+                    <tbody ng-repeat="Std in Courses">
+
+
+                        <tr>
+                            <td></td>
+                            <td>{{Std.CourseName}}</td>
+                            <td>{{Std.CourseHours}}</td>
+                            <td>{{Std.CourseCode}}</td>
+                            <td>
+                                <a href="#editCourseModal1" ng-click="StartEditing(Std.Id)" class="edit" data-toggle="modal">Edit</a>
+                                <a href="" ng-click="DeleteCourse(Std.Id)" class="delete">Delete</a>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+                <div class="clearfix">
+
+                </div>
+            </div>
+        </div>
+        <!-- Edit Modal HTML -->
+        <div id="addCourseModal" class="modal fade">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <form>
+                        <div class="modal-header">
+                            <h4 class="modal-title">Add Course</h4>
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <center><font color="red"><strong>Add Course</strong></font></center>
+                            <div class="form-group">
+                                <label>Name</label>
+                                <input type="text" class="form-control" placeholder="Course Name" ng-model="name" value="" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Credit Hours</label>
+                                <input type="text" class="form-control" ng-model="credit" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Code</label>
+                                <input type="text" class="form-control" ng-model="code" required>
+                            </div>
+
+                        </div>
+                        <div class="modal-footer">
+                            <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
+                            <button type="button" class="btn btn-success" ng-href='#here' ng-click="AddCourse()">Add</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Edit Modal HTML -->
+        <div id="editCourseModal1" class="modal fade">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form>
+                        <div class="modal-header">
+                            <h4 class="modal-title">Edit Course </h4>
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+
+                                <label>Name</label>
+                                <input type="text" class="form-control" ng-model="ename" ng-value="EditingCourse[0].CourseName" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Credit Hours</label>
+                                <input type="text" class="form-control" ng-model="ecredit" ng-value="EditingCourse[0].CourseHours" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Code</label>
+                                <input type="text" class="form-control" ng-model="ecode" ng-value="EditingCourse[0].CourseCode" required>
+                            </div>
+
+                        </div>
+                        <div class="modal-footer">
+                            <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
+                            <button type="button" class="btn btn-success" ng-href='#here' ng-click="EditCourse()">Edit</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+
+</body>
+</html>

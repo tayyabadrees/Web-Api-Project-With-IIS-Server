@@ -11,7 +11,8 @@ namespace web_Api_Project.Models
 {
     using System;
     using System.Collections.Generic;
-    
+    using System.ComponentModel.DataAnnotations;
+
     public partial class Course
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
@@ -21,8 +22,11 @@ namespace web_Api_Project.Models
         }
     
         public int CourseId { get; set; }
+        [RegularExpression("/^[a-zA-Z ]*$/")]
         public string CourseName { get; set; }
+      [RegularExpression("[a-zA-Z]{2}[0-9]{4}")]
         public string CourseCode { get; set; }
+        [Range(1, 16)]
         public int CourseHours { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
